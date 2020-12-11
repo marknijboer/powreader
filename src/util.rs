@@ -3,7 +3,7 @@ use chrono::{DateTime};
 
 pub fn get_single_bracket_data(line: &'_ str) -> &'_ str {
     lazy_static! {
-        static ref BRACKET_REGEX: Regex = Regex::new(r"\((.*)\)").unwrap();
+        static ref BRACKET_REGEX: Regex = Regex::new(r"\((.*?)\)").unwrap();
     }
     let caps = BRACKET_REGEX.captures(line).unwrap();
     caps.get(1).map_or("", |m| m.as_str())

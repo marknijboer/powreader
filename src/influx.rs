@@ -28,5 +28,10 @@ pub fn send_stats(host: &str, data: &MeterOutput) {
     .add_field("power_tariff_indicator", Value::Integer(data.tariff_indicator as i64))
     .add_field("power_equipment_id", Value::String(data.power_equipment_id.clone()));
 
+    // Drawing 1 MW in once seems like an invalid value. We will skip that.
+    if data.actual_delivered_power > 1000.0 {
+        return;
+    }
+
     udp.write_point(point).unwrap();
 }
