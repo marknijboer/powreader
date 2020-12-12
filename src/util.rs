@@ -1,26 +1,40 @@
 use regex::Regex;
 use chrono::{DateTime};
 
-pub fn get_single_bracket_data(line: &'_ str) -> &'_ str {
+pub fn get_single_bracket_data(line: &'_ str) -> Result<&'_ str, &str> {
     lazy_static! {
         static ref BRACKET_REGEX: Regex = Regex::new(r"\((.*?)\)").unwrap();
     }
-    let caps = BRACKET_REGEX.captures(line).unwrap();
-    caps.get(1).map_or("", |m| m.as_str())
+    let caps_res = BRACKET_REGEX.captures(line);
+    if caps_res.is_none() {
+        return Err("Incomplete data");
+    }
+    let caps = caps_res.unwrap();
+    Ok(caps.get(1).map_or("", |m| m.as_str()))
 }
 
-pub fn get_double_bracket_data(line: &'_ str) -> Vec<&'_ str> {
+pub fn get_double_bracket_data(line: &'_ str) -> Result<Vec<&'_ str>, &str> {
     lazy_static! {
         static ref BRACKET_REGEX: Regex = Regex::new(r"\((.*?)\)\((.*?)\)").unwrap();
     }
-    let caps = BRACKET_REGEX.captures(line).unwrap();
+    let caps_res = BRACKET_REGEX.captures(line);
+    if caps_res.is_none() {
+        return Err("Incomplete data");
+    }
+    let caps = caps_res.unwrap();
 
-    caps
+    let str_caps: Vec<&str> = caps
     .iter()
     .skip(1)
     .filter(|m| m.is_some())
     .map(|m| m.unwrap().as_str())
-    .collect()
+    .collect();
+
+    if str_caps.len() < 2 {
+        return Err("Incomplete data");
+    }
+
+    Ok(str_caps)
 }
 
 pub fn parse_numeric(usage: &str) -> String {

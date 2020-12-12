@@ -47,12 +47,13 @@ fn interact<T: SerialPort>(port: &mut T, matches: &ArgMatches) -> io::Result<()>
         reader.read_line(&mut line)?;
         //print!("{}", line);
         if line.starts_with('!') {
-            let output = interpret::message(&buffer);
-            if matches.value_of("influxdb").is_none() {
-                println!("{}", output.to_json());
-            } else {
-                // Send via influxdb
-                influx::send_stats(matches.value_of("influxdb").unwrap(), &output)
+            if let Ok(output) = interpret::message(&buffer) {
+                if matches.value_of("influxdb").is_none() {
+                    println!("{}", output.to_json());
+                } else {
+                    // Send via influxdb
+                    influx::send_stats(matches.value_of("influxdb").unwrap(), &output)
+                }
             }
         } else {
             buffer.push(line.clone());

@@ -60,19 +60,19 @@ impl MeterOutput {
     }
 }
 
-pub fn message(message: &[String]) -> MeterOutput {
+pub fn message(message: &[String]) -> Result<MeterOutput, &str> {
     let mut output = MeterOutput::new();
 
     for line in message {
         // Find the P1 data output version
         if line.starts_with("1-3:0.2.8") {
-            let version = get_single_bracket_data(line);
+            let version = get_single_bracket_data(line)?;
             output.p1_output_version = version.parse().unwrap_or_default();
         }
 
         // Get the current time
         if line.starts_with("0-0:1.0.0") {
-            let time = get_single_bracket_data(line);
+            let time = get_single_bracket_data(line)?;
             let unix = parse_timestamp(time);
 
             output.timestamp = unix;
@@ -80,79 +80,79 @@ pub fn message(message: &[String]) -> MeterOutput {
 
         // Get the current usage
         if line.starts_with("1-0:1.7.0") {
-            let usage = get_single_bracket_data(line);
+            let usage = get_single_bracket_data(line)?;
             output.actual_delivered_power = divide_by_thousand(parse_numeric(usage).as_str());
         }
 
         // Get the current returned
         if line.starts_with("1-0:2.7.0") {
-            let usage = get_single_bracket_data(line);
+            let usage = get_single_bracket_data(line)?;
             output.actual_returned_power = divide_by_thousand(parse_numeric(usage).as_str());
         }
 
         // Tariff 1 delivered
         if line.starts_with("1-0:1.8.1") {
-            let usage = get_single_bracket_data(line);
+            let usage = get_single_bracket_data(line)?;
             output.power_delivered_tariff1 = divide_by_thousand(parse_numeric(usage).as_str());
         }
 
          // Tariff 2 delivered
         if line.starts_with("1-0:1.8.2") {
-            let usage = get_single_bracket_data(line);
+            let usage = get_single_bracket_data(line)?;
             output.power_delivered_tariff2 = divide_by_thousand(parse_numeric(usage).as_str());
         }
 
          // Tariff 1 returned
         if line.starts_with("1-0:2.8.1") {
-            let usage = get_single_bracket_data(line);
+            let usage = get_single_bracket_data(line)?;
             output.power_returned_tariff1 = divide_by_thousand(parse_numeric(usage).as_str());
         }
 
          // Tariff 2 returned
         if line.starts_with("1-0:2.8.2") {
-            let usage = get_single_bracket_data(line);
+            let usage = get_single_bracket_data(line)?;
             output.power_returned_tariff2 = divide_by_thousand(parse_numeric(usage).as_str());
         }
 
         // Tariff indicator
         if line.starts_with("0-0:96.14.0") {
-            let line = get_single_bracket_data(line);
+            let line = get_single_bracket_data(line)?;
             output.tariff_indicator = parse_numeric(line).parse().unwrap_or_default();
         }
 
         // Equipment ID indicator
         if line.starts_with("0-0:96.1.1") {
-            let line = get_single_bracket_data(line);
+            let line = get_single_bracket_data(line)?;
             output.power_equipment_id = line.trim().to_string();
         }
 
         // Failures
         if line.starts_with("0-0:96.7.21") {
-            let line = get_single_bracket_data(line);
+            let line = get_single_bracket_data(line)?;
             output.power_failures = line.parse().unwrap_or_default();
         }
 
         // Failures long
         if line.starts_with("0-0:96.7.9") {
-            let line = get_single_bracket_data(line);
+            let line = get_single_bracket_data(line)?;
             output.long_power_failures = line.parse().unwrap_or_default();
         }
 
         // Device type
         if line.starts_with("0-1:24.1.0") {
-            let line = get_single_bracket_data(line);
+            let line = get_single_bracket_data(line)?;
             output.device_type = line.parse().unwrap_or_default();
         }
 
         // Gas meter equipment id
         if line.starts_with("0-1:96.1.0") {
-            let line = get_single_bracket_data(line);
+            let line = get_single_bracket_data(line)?;
             output.gas_equipment_id = Some(line.trim().to_string());
         }
 
         // Gas meter values
         if line.starts_with("0-1:24.2.1") {
-            let line = get_double_bracket_data(line);
+            let line = get_double_bracket_data(line)?;
             let timestamp = line[0];
             let usage = parse_numeric(line[1]);
             output.gas_delivered_timestamp = Some(parse_timestamp(timestamp));
@@ -162,5 +162,5 @@ pub fn message(message: &[String]) -> MeterOutput {
         }
     }
 
-    output
+    Ok(output)
 }
