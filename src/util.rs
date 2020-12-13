@@ -71,3 +71,8 @@ pub fn parse_timestamp(timestamp: &str) -> i64 {
 
     rfc3339_opt.unwrap().timestamp()
 }
+
+pub fn print_error(err: SimpleError, buffer: &[String]) {
+    eprintln!("{}", err);
+    eprintln!("{:?}", buffer);
+}
