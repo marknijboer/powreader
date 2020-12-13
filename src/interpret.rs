@@ -1,3 +1,4 @@
+use simple_error::SimpleResult;
 use crate::util::{ 
     parse_numeric,
     parse_timestamp,
@@ -60,7 +61,7 @@ impl MeterOutput {
     }
 }
 
-pub fn message(message: &[String]) -> Result<MeterOutput, &str> {
+pub fn message(message: &[String]) -> SimpleResult<MeterOutput> {
     let mut output = MeterOutput::new();
 
     for line in message {

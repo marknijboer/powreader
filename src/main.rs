@@ -44,15 +44,24 @@ fn interact<T: SerialPort>(port: &mut T, matches: &ArgMatches) -> io::Result<()>
     let mut line = String::new();
     let mut buffer: Vec<String> = Vec::new();
     loop {
-        reader.read_line(&mut line)?;
-        //print!("{}", line);
+        if let Err(e) = reader.read_line(&mut line) {
+            eprintln!("Could not read line: {}", e);
+            line.truncate(0);
+            continue;
+        }
+
         if line.starts_with('!') {
-            if let Ok(output) = interpret::message(&buffer) {
-                if matches.value_of("influxdb").is_none() {
-                    println!("{}", output.to_json());
-                } else {
-                    // Send via influxdb
-                    influx::send_stats(matches.value_of("influxdb").unwrap(), &output)
+            match interpret::message(&buffer) {
+                Ok(output) => {
+                    if matches.value_of("influxdb").is_none() {
+                        println!("{}", output.to_json());
+                    } else {
+                        // Send via influxdb
+                        influx::send_stats(matches.value_of("influxdb").unwrap(), &output)
+                    }
+                }, 
+                Err(e) => {
+                    eprintln!("{}", e);
                 }
             }
         } else {

@@ -1,25 +1,28 @@
 use regex::Regex;
 use chrono::{DateTime};
+use simple_error::{SimpleError, SimpleResult};
 
-pub fn get_single_bracket_data(line: &'_ str) -> Result<&'_ str, &str> {
+pub fn get_single_bracket_data(line: &'_ str) -> SimpleResult<&'_ str> {
     lazy_static! {
         static ref BRACKET_REGEX: Regex = Regex::new(r"\((.*?)\)").unwrap();
     }
     let caps_res = BRACKET_REGEX.captures(line);
     if caps_res.is_none() {
-        return Err("Incomplete data");
+        let error_message = format!("Incomplete data. Line was: {}", line);
+        return Err(SimpleError::new(error_message));
     }
     let caps = caps_res.unwrap();
     Ok(caps.get(1).map_or("", |m| m.as_str()))
 }
 
-pub fn get_double_bracket_data(line: &'_ str) -> Result<Vec<&'_ str>, &str> {
+pub fn get_double_bracket_data(line: &'_ str) -> SimpleResult<Vec<&'_ str>> {
     lazy_static! {
         static ref BRACKET_REGEX: Regex = Regex::new(r"\((.*?)\)\((.*?)\)").unwrap();
     }
     let caps_res = BRACKET_REGEX.captures(line);
     if caps_res.is_none() {
-        return Err("Incomplete data");
+        let error_message = format!("Incomplete data. Line was: {}", line);
+        return Err(SimpleError::new(error_message));
     }
     let caps = caps_res.unwrap();
 
@@ -31,7 +34,8 @@ pub fn get_double_bracket_data(line: &'_ str) -> Result<Vec<&'_ str>, &str> {
     .collect();
 
     if str_caps.len() < 2 {
-        return Err("Incomplete data");
+        let error_message = format!("Incomplete data. Line was: {}", line);
+        return Err(SimpleError::new(error_message));
     }
 
     Ok(str_caps)
