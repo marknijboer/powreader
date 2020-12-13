@@ -23,9 +23,15 @@ use serial::prelude::*;
 fn main() {
     let matches = load_cli_flags();
     let serial_device = matches.value_of("SERIALPORT").unwrap();
-    let mut port = serial::open(serial_device).unwrap();
+    let port_res = serial::open(serial_device);
 
-    interact(&mut port, &matches).unwrap();
+    if let Err(e) = port_res {
+        eprintln!("Could not connect to serial port '{}': {}", serial_device, e);
+        std::process::exit(1);
+    }
+
+    let mut port = port_res.unwrap();
+    interact(&mut port, &matches);
 }
 
 // Load all flags and parse the arguments
@@ -46,7 +52,7 @@ fn load_cli_flags() -> ArgMatches<'static> {
     .get_matches();
 }
 
-fn interact<T: SerialPort>(port: &mut T, matches: &ArgMatches) -> io::Result<()> {
+fn interact<T: SerialPort>(port: &mut T, matches: &ArgMatches) {
     port.reconfigure(&|settings| {
         settings.set_baud_rate(serial::Baud115200).expect("Cannot set baudrate");
         settings.set_char_size(serial::Bits8);
