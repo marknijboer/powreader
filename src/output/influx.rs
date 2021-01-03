@@ -3,7 +3,7 @@ use influx_db_client::{UdpClient, Point, Value, point};
 use std::net::SocketAddr;
 
 pub fn send_stats(host: &str, data: &MeterOutput) {
-    let server_opt= host
+    let server_opt = host
         .parse::<SocketAddr>();
 
     if server_opt.is_err() {
@@ -33,5 +33,7 @@ pub fn send_stats(host: &str, data: &MeterOutput) {
         return;
     }
 
-    udp.write_point(point).unwrap();
+    if let Err(e) = udp.write_point(point) {
+        eprintln!("Could not write data point to InfluxDB: {}", e);
+    }
 }
